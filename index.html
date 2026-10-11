@@ -315,7 +315,7 @@
     .gate__card form { display: grid; gap: 1rem; }
     .gate__links { display: grid; gap: 0.25rem; justify-items: start; }
     .gate code { padding: 0.05rem 0.3rem; background: var(--paper); border-radius: 3px; }
-    .linkbtn { min-height: 2.75rem; padding: 0; border: 0; background: none; color: var(--accent); font: inherit; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
+    .linkbtn { display: inline-flex; align-items: center; min-height: 2.75rem; }
     .intro__back { margin-bottom: 0.5rem; margin-left: -0.9rem; }
     h1:focus { outline: none; }
 
@@ -1593,7 +1593,19 @@
        Signing in
        ================================================================ */
     function gateVisible() { return S.auth === 'setup' || (S.auth === 'out' && (!CLUB.publicRead || ui.showGate)); }
-
+   function contactLink(c, body) {
+      c = String(c || '').trim();
+      if (!c) return null;
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c)) return 'mailto:' + c + '?subject=' + encodeURIComponent('Please add me to the reading club') + '&body=' + encodeURIComponent(body);
+      var d = c.replace(/[\s()+\-.]/g, '');
+      if (/^\d{7,15}$/.test(d)) return 'https://wa.me/' + d + '?text=' + encodeURIComponent(body);
+      return null;
+    }
+    function inviteNoteHTML() {
+      var note = CLUB.inviteNote || 'Ask whoever shared this link to add you.';
+      var link = contactLink(CLUB.inviteContact, 'Hi! Could you add me to the reading club? My email address is: ');
+      return link ? '<p><a class="linkbtn" href="' + esc(link) + '" target="_blank" rel="noopener">' + esc(note) + '</a></p>' : '<p class="hint">' + esc(note) + '</p>';
+    }
     function renderGate() {
       var g = $('#gate');
       if (S.auth === 'setup') {
@@ -1615,7 +1627,7 @@
           (mode === 'in' ? '<button type="button" class="linkbtn" data-gate="forgot">Forgot your password?</button>' : '') +
           (mode === 'forgot' ? '<button type="button" class="linkbtn" data-gate="in">Back to sign in</button>' : '') +
         '</div>' +
-        (mode === 'in' && !CLUB.allowSignup ? '<p class="hint">' + esc(CLUB.inviteNote || 'Ask whoever shared this link to add you.') + '</p>' : '') +
+              (mode === 'in' && !CLUB.allowSignup ? inviteNoteHTML() : '') +
         '</form>' + (CLUB.publicRead ? '<button type="button" class="btn btn--quiet btn--small" data-gate="browse">Keep browsing as a guest</button>' : '') + '</div>';
     }
 
